@@ -4,8 +4,6 @@ import re
 import urllib.request
 
 
-
-
 class ShowInfo:
     id = None
     name = None
@@ -49,17 +47,35 @@ def get_episodes_info(show_id):
         episodes_info.append(episode_info)
     return episodes_info
 
+def extract_file_info(filename):
+    epcode_re = re.compile(r"S(\d\d)E(\d\d)", re.IGNORECASE)
+    match = epcode_re.search(filename)
+    if match:
+        return tuple(map(int, match.groups()))
+    return None
+
+def make_file_table(filenames, episodes):
+    name_map = {}
+    for filename in filenames:
+        info = extract_file_info(filename)
+        if info:
+            name_map[info] = filename
+    table = []
+    for episode in episodes:
+        key = episode.num, episode.season
+        if key in name_map:
+            table.append((episode, name_map[key]))
+    return table
+
 def main():
     print("Data obtained via TVmaze <tvmaze.com>")
 
-    show_name = "Penn & Teller Bullshit!"
+    show_name = "Friends"
     show_info = get_show_info(show_name)
-    print(confirm_show(show_info))
-
-    for ep in get_episodes_info(show_info.id):
-        print(ep.name)
-
-    target_dir = "~/epnamer/test"
+    if confirm_show(show_info):
+        episodes =  get_episodes_info(show_info.id)
+        for row in make_file_table(os.listdir("test"), episodes):
+            print(*row)
 
 def generate_name(season, episode):
     return '{}.s{}e{}'.format(show_name, season, episode)
