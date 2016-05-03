@@ -12,10 +12,6 @@ def _json_query(url):
         return json.loads(response.readall().decode('utf-8'))
 
 
-class QueryFailure(Exception):
-    pass
-
-
 class tvmaze_guide:
     def __init__(self, *args):
         self.episodes = []
@@ -29,8 +25,6 @@ class tvmaze_guide:
         url = "http://api.tvmaze.com/singlesearch/shows?q={}"
         query = url.format(urllib.parse.quote(show_name))
         result = _json_query(query)
-        if not result or 'id' not in result:
-            raise QueryFailure
         return result['id']
 
     def _parse_episode(self, ep_data):
