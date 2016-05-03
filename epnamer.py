@@ -6,6 +6,7 @@ import urllib.request
 from collections import namedtuple
 
 Episode = namedtuple('Episode', 's, e, title')
+Video = namedtuple('Video', 's', 'e', 'suffix')
 
 def _json_query(url):
     with urllib.request.urlopen(url) as response:
@@ -38,4 +39,20 @@ class tvmaze_guide:
         for ep_result in result:
             self.episodes.append(self._parse_episode(ep_result))
 
+def epcode_res():
+    re_strs = [r"S(\d\d)E(\d\d)", r"Season (\d+) Episode (\d+)"]
+    suffix = r"[^/]*$"
+    return list(re.compile(s + suffix, re.IGNORECASE) for s in re_strs)
+
+    return None
+
+def parse_video(filename, season, num):
+    return filename
+
+def iter_videos(filenames):
+    for filename in filenames:
+        for epcode_re in epcode_res():
+            match = epcode_re.search(filename)
+            if match:
+                yield parse_video(filename, *map(int, match.groups()))
 
