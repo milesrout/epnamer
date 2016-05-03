@@ -15,7 +15,8 @@ def _json_query(url):
 class QueryFailure(Exception):
     pass
 
-class ep_guide:
+
+class tvmaze_guide:
     def __init__(self, *args):
         self.episodes = []
         if args:
@@ -24,12 +25,6 @@ class ep_guide:
     def __iter__(self):
         yield from self.episodes
 
-    def fetch(self, show_name):
-        raise NotImplementedError()
-
-
-
-class tvmaze_guide(ep_guide):
     def _find_show_id(self, show_name):
         url = "http://api.tvmaze.com/singlesearch/shows?q={}"
         query = url.format(urllib.parse.quote(show_name))
@@ -48,3 +43,5 @@ class tvmaze_guide(ep_guide):
         result = _json_query(query)
         for ep_result in result:
             self.episodes.append(self._parse_episode(ep_result))
+
+
