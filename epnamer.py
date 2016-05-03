@@ -3,6 +3,7 @@ import os
 import re
 import urllib.request
 
+# Wow, this code is awful. This needs massive refactoring.
 
 class ShowInfo:
     id = None
