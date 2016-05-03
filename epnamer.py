@@ -14,6 +14,9 @@ class EpisodeInfo:
     num = None
     name = None
 
+    def __str__(self):
+        return "{} s{:02}e{:02}".format(self.name, self.season, self.num)
+
 def json_query(url):
     with urllib.request.urlopen(url) as response:
         return json.loads(response.readall().decode('utf-8'))
@@ -62,9 +65,9 @@ def make_file_table(filenames, episodes):
             name_map[info] = filename
     table = []
     for episode in episodes:
-        key = episode.num, episode.season
+        key = episode.season, episode.num
         if key in name_map:
-            table.append((episode, name_map[key]))
+            table.append((name_map[key], episode))
     return table
 
 def main():
