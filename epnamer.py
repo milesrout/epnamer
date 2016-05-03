@@ -42,8 +42,7 @@ class tvmaze_guide:
 
 def epcode_res():
     re_strs = [r'S(\d\d)E(\d\d)', r'Season (\d+) Episode (\d+)']
-    suffix = r'[^/]*$'
-    return list(re.compile(s + suffix, re.IGNORECASE) for s in re_strs)
+    return list(re.compile(s, re.IGNORECASE) for s in re_strs)
 
 
 def parse_video(filename, season, num):
@@ -55,7 +54,7 @@ def parse_video(filename, season, num):
 def iter_videos(filenames):
     for filename in filenames:
         for epcode_re in epcode_res():
-            match = epcode_re.search(filename)
+            match = epcode_re.search(os.path.basename(filename))
             if match:
                 yield parse_video(filename, *map(int, match.groups()))
 
