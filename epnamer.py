@@ -3,94 +3,48 @@ import os
 import re
 import urllib.request
 
-# Wow, this code is awful. This needs massive refactoring.
+from collections import namedtuple
 
-class ShowInfo:
-    id = None
-    name = None
-    summary = None
+Episode = namedtuple('Episode', 's, e, title')
 
-class EpisodeInfo:
-    season = None
-    num = None
-    name = None
-
-    def __str__(self):
-        return "{} s{:02}e{:02}".format(self.name, self.season, self.num)
-
-def json_query(url):
+def _json_query(url):
     with urllib.request.urlopen(url) as response:
         return json.loads(response.readall().decode('utf-8'))
 
-def get_show_info(show_name):
-    show_search_url = "http://api.tvmaze.com/singlesearch/shows?q={}"
-    query_url = show_search_url.format(urllib.parse.quote(show_name))
-    json_data = json_query(query_url)
-    show_info = ShowInfo()
-    show_info.id = json_data['id']
-    show_info.name = json_data['name']
-    show_info.summary = json_data['summary']
-    return show_info
 
-def confirm_show(show_info):
-    print("Selected '{}'".format(show_info.name))
-    print("'''{}'''".format(show_info.summary))
-    print()
-    return input("Correct? [Y/n] ").lower() in ('y', 'yes', '')
+class QueryFailure(Exception):
+    pass
 
-def get_episodes_info(show_id):
-    episode_search_url = "http://api.tvmaze.com/shows/{}/episodes"
-    query_url = episode_search_url.format(show_id)
-    json_data = json_query(query_url)
-    episodes_info = []
-    for episode_data in json_data:
-        episode_info = EpisodeInfo()
-        episode_info.season = episode_data['season']
-        episode_info.num = episode_data['number']
-        episode_info.name = episode_data['name']
-        episodes_info.append(episode_info)
-    return episodes_info
+class ep_guide:
+    def __init__(self, *args):
+        self.episodes = []
+        if args:
+            self.fetch(*args)
 
-def extract_file_info(filename):
-    epcode_re = re.compile(r"S(\d\d)E(\d\d)", re.IGNORECASE)
-    match = epcode_re.search(filename)
-    if match:
-        return tuple(map(int, match.groups()))
-    return None
+    def __iter__(self):
+        yield from self.episodes
 
-def make_file_table(filenames, episodes):
-    name_map = {}
-    for filename in filenames:
-        info = extract_file_info(filename)
-        if info:
-            name_map[info] = filename
-    table = []
-    for episode in episodes:
-        key = episode.season, episode.num
-        if key in name_map:
-            table.append((name_map[key], episode))
-    return table
+    def fetch(self, show_name):
+        raise NotImplementedError()
 
-def main():
-    print("Data obtained via TVmaze <tvmaze.com>")
 
-    show_name = "Friends"
-    show_info = get_show_info(show_name)
-    if confirm_show(show_info):
-        episodes =  get_episodes_info(show_info.id)
-        for row in make_file_table(os.listdir("test"), episodes):
-            print(*row)
 
-def generate_name(season, episode):
-    return '{}.s{}e{}'.format(show_name, season, episode)
+class tvmaze_guide(ep_guide):
+    def _find_show_id(self, show_name):
+        url = "http://api.tvmaze.com/singlesearch/shows?q={}"
+        query = url.format(urllib.parse.quote(show_name))
+        result = _json_query(query)
+        if not result or 'id' not in result:
+            raise QueryFailure
+        return result['id']
 
-def get_name_map(old_filenames):
-    epcode_re = re.compile(r"S(\d\d)E(\d\d)", re.IGNORECASE)
-    name_map = {}
-    for filename in old_filenames:
-        match = epcode_re.search(filename)
-        if match:
-            name_map[filename] = generate_name(filename, *match.groups())
+    def _parse_episode(self, ep_data):
+        return Episode(ep_data['season'], ep_data['number'], ep_data['name'])
 
-if __name__ == "__main__":
-    main()
+    def fetch(self, show_name):
+        show_id = self._find_show_id(show_name)
+        url = "http://api.tvmaze.com/shows/{}/episodes"
+        query = url.format(show_id)
+        result = _json_query(query)
+        for ep_result in result:
+            self.episodes.append(self._parse_episode(ep_result))
