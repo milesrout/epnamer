@@ -12,11 +12,14 @@ def seinfeld_episodes():
 def epcodes():
     print("Epcodes")
     filenames = [
-        "Test.S01E12.mkv",
+        "Test.S01E12.720p.mkv",
         ".S01E01.dir/foo.avi",
         "Bar Season 1 Episode 18.mp4",
     ]
-    print(list(iter_videos(filenames)))
+    assert(list(iter_videos(filenames)) == [
+        Video('Test.S01E12.720p.mkv', 1, 12, '720p'),
+        Video('Bar Season 1 Episode 18.mp4', 1, 18, ''),
+    ])
 
 
 print("Testing:")

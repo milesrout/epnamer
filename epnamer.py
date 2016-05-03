@@ -6,7 +6,7 @@ import urllib.request
 from collections import namedtuple
 
 Episode = namedtuple('Episode', 's, e, title')
-Video = namedtuple('Video', 's', 'e', 'suffix')
+Video = namedtuple('Video', 'filename, s, e, suffix')
 
 def _json_query(url):
     with urllib.request.urlopen(url) as response:
@@ -23,7 +23,7 @@ class tvmaze_guide:
         yield from self.episodes
 
     def _find_show_id(self, show_name):
-        url = "http://api.tvmaze.com/singlesearch/shows?q={}"
+        url = 'http://api.tvmaze.com/singlesearch/shows?q={}'
         query = url.format(urllib.parse.quote(show_name))
         result = _json_query(query)
         return result['id']
@@ -33,21 +33,24 @@ class tvmaze_guide:
 
     def fetch(self, show_name):
         show_id = self._find_show_id(show_name)
-        url = "http://api.tvmaze.com/shows/{}/episodes"
+        url = 'http://api.tvmaze.com/shows/{}/episodes'
         query = url.format(show_id)
         result = _json_query(query)
         for ep_result in result:
             self.episodes.append(self._parse_episode(ep_result))
 
+
 def epcode_res():
-    re_strs = [r"S(\d\d)E(\d\d)", r"Season (\d+) Episode (\d+)"]
-    suffix = r"[^/]*$"
+    re_strs = [r'S(\d\d)E(\d\d)', r'Season (\d+) Episode (\d+)']
+    suffix = r'[^/]*$'
     return list(re.compile(s + suffix, re.IGNORECASE) for s in re_strs)
 
-    return None
 
 def parse_video(filename, season, num):
-    return filename
+    tags = ['360p', '480p','720p', '1080p', 'x264', 'x265']
+    suffix = ''.join(tag for tag in tags if tag in filename.split('/')[-1])
+    return Video(filename, season, num, suffix)
+
 
 def iter_videos(filenames):
     for filename in filenames:
