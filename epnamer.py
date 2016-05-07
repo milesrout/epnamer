@@ -5,7 +5,7 @@ import urllib.request
 
 from collections import namedtuple
 
-Episode = namedtuple('Episode', 's, e, title')
+Episode = namedtuple('Episode', 'show, s, e, title')
 Video = namedtuple('Video', 'filename, s, e, suffix')
 
 def _json_query(url):
@@ -16,6 +16,7 @@ def _json_query(url):
 class tvmaze_guide:
     def __init__(self, *args):
         self.episodes = []
+        self.show = None
         if args:
             self.fetch(*args)
 
@@ -26,10 +27,15 @@ class tvmaze_guide:
         url = 'http://api.tvmaze.com/singlesearch/shows?q={}'
         query = url.format(urllib.parse.quote(show_name))
         result = _json_query(query)
+        self.show = result['name']
         return result['id']
 
     def _parse_episode(self, ep_data):
-        return Episode(ep_data['season'], ep_data['number'], ep_data['name'])
+        return Episode(
+                self.show,
+                ep_data['season'],
+                ep_data['number'],
+                ep_data['name'])
 
     def fetch(self, show_name):
         show_id = self._find_show_id(show_name)
@@ -58,3 +64,22 @@ def iter_videos(filenames):
             if match:
                 yield parse_video(filename, *map(int, match.groups()))
 
+def make_name(video, episode):
+    text_strip = lambda s: ''.join(c for c in s if c.isalnum() or c == ' ')
+    text_map = lambda s: text_strip(s).replace(' ', '.')
+    file_format = '{}.S{:02}E{:02}.{}'
+    suffix = '.' + video.suffix if video.suffix else ''
+    extension = os.path.splitext(video.filename)[1]
+    return file_format.format(text_map(episode.show), episode.s, episode.e,
+            text_map(episode.title)) + suffix + extension
+
+def _iter_rename_table(filenames, guide):
+    videos = list(iter_videos(filenames))
+    for video in iter_videos(filenames):
+        for episode in guide:
+            if (episode.s, episode.e) == (video.s, video.e):
+                yield video.filename, make_name(video, episode)
+                break
+
+def rename_map(filenames, guide):
+    return {k: v for k, v in _iter_rename_table(filenames, guide)}
