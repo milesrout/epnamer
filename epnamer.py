@@ -83,3 +83,6 @@ def _iter_rename_table(filenames, guide):
 
 def rename_map(filenames, guide):
     return {k: v for k, v in _iter_rename_table(filenames, guide)}
+
+def main():
+    print("Data obtained via TVmaze <tvmaze.com>")
