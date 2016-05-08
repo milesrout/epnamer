@@ -1,5 +1,4 @@
 from epnamer import *
-from friends_episodes import friends
 
 def seinfeld_episodes():
     print('Seinfeld episodes')
@@ -36,9 +35,7 @@ def renaming():
 
 
 print('Testing:')
-#seinfeld_episodes()
+seinfeld_episodes()
 epcodes()
 renaming()
-
-print(rename_map)
 
