@@ -83,7 +83,7 @@ def _iter_rename_table(filenames, guide):
                 yield video.filename, make_name(video, episode)
                 break
 
-def rename_map(filenames, guide):
+def get_rename_map(filenames, guide):
     return {k: v for k, v in _iter_rename_table(filenames, guide)}
 
 def recursive_iter_paths(targets):
@@ -94,12 +94,16 @@ def recursive_iter_paths(targets):
         elif os.path.exists(target):
             yield target
 
-def print_usage():
-    print("Usage: {} SHOWNAME FILE...")
+def do_renaming(rename_map):
+    with open('epnamer-undo.sh', 'w') as f:
+        for filename in rename_map:
+            raise NotImplementedError
+
+
 
 def main():
     if len(sys.argv) < 3:
-        print_usage()
+        print("Usage: {} SHOWNAME FILE...")
         sys.exit()
 
     try:
@@ -110,12 +114,26 @@ def main():
         print("Could not find show", sys.argv[1], "in database.")
         sys.exit(1)
 
-    filenames = list(recursive_iter_paths(sys.argv[2:]))
-    if not filenames:
+    arg_filenames = list(recursive_iter_paths(sys.argv[2:]))
+    if not arg_filenames:
         print("No files to rename.")
         sys.exit(1)
 
-    print(rename_map(filenames, guide))
+    rename_map = get_rename_map(arg_filenames, guide)
+
+    print("Performing the following renames:")
+    printable_map = {os.path.basename(f): rename_map[f] for f in rename_map}
+    for basename in sorted(printable_map):
+        print("{} => {}".format(basename, printable_map[basename]))
+    print("")
+    confirm = input("Continue? [Y/n] ").lower() in ('', 'y', 'yes')
+    if not confirm:
+        print("Aborted.")
+        sys.exit()
+
+    do_renaming(rename_map)
+
+
 
 
 if __name__ == '__main__':
