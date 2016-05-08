@@ -89,7 +89,8 @@ def rename_map(filenames, guide):
 def recursive_iter_paths(targets):
     for target in targets:
         if os.path.isdir(target):
-            yield from os.listdir(target)
+            dir_contents = (os.path.join(target, t) for t in os.listdir(target))
+            yield from recursive_iter_paths(dir_contents)
         elif os.path.exists(target):
             yield target
 
