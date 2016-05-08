@@ -1,9 +1,9 @@
-import json
-import os.path
-import re
-import urllib.request
-
 from collections import namedtuple
+import json
+import os
+import re
+import sys
+import urllib.request
 
 Episode = namedtuple('Episode', 'show, s, e, title')
 Video = namedtuple('Video', 'filename, s, e, suffix')
@@ -25,9 +25,11 @@ class tvmaze_guide:
 
     def _find_show_id(self, show_name):
         url = 'http://api.tvmaze.com/singlesearch/shows?q={}'
+        print("Getting show data from TVmaze <tvmaze.com> ...")
         query = url.format(urllib.parse.quote(show_name))
         result = _json_query(query)
         self.show = result['name']
+        print("Show data found at", result['url'])
         return result['id']
 
     def _parse_episode(self, ep_data):
@@ -84,5 +86,36 @@ def _iter_rename_table(filenames, guide):
 def rename_map(filenames, guide):
     return {k: v for k, v in _iter_rename_table(filenames, guide)}
 
+def recursive_iter_paths(targets):
+    for target in targets:
+        if os.path.isdir(target):
+            yield from os.listdir(target)
+        elif os.path.exists(target):
+            yield target
+
+def print_usage():
+    print("Usage: {} SHOWNAME FILE...")
+
 def main():
-    print("Data obtained via TVmaze <tvmaze.com>")
+    if len(sys.argv) < 3:
+        print_usage()
+        sys.exit()
+
+    try:
+        guide = tvmaze_guide(sys.argv[1])
+    except urllib.error.HTTPError:
+        guide = None
+    if not guide:
+        print("Could not find show", sys.argv[1], "in database.")
+        sys.exit(1)
+
+    filenames = list(recursive_iter_paths(sys.argv[2:]))
+    if not filenames:
+        print("No files to rename.")
+        sys.exit(1)
+
+    print(rename_map(filenames, guide))
+
+
+if __name__ == '__main__':
+    main()
