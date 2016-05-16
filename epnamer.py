@@ -52,6 +52,7 @@ def epcode_res():
     re_strs = [
         r'S(\d\d)E(\d\d)',
         r'Season (\d+) Episode (\d+)',
+        r'\s(\d)x(\d\d)\s',
         r'\s(\d)(\d\d)\s',
     ]
     return list(re.compile(s, re.IGNORECASE) for s in re_strs)
