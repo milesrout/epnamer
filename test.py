@@ -29,9 +29,10 @@ def renaming():
     ]
     expected = {
         'Seinfeld s02e07 720p.mkv': 'Seinfeld.S02E07.The.Revenge.720p.mkv',
-        's04e11/seinfeld.s02e11.avi': 'Seinfeld.S02E11.The.Chinese.Restaurant.avi',
+        's04e11/seinfeld.s02e11.avi':
+            's04e11/Seinfeld.S02E11.The.Chinese.Restaurant.avi',
     }
-    assert(rename_map(filenames, guide) == expected)
+    assert(get_rename_map(filenames, guide) == expected)
 
 
 print('Testing:')
