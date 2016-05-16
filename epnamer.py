@@ -104,11 +104,18 @@ def recursive_iter_paths(targets):
             yield target
 
 def do_renaming(rename_map):
-    with open('epnamer-undo.sh', 'w') as f:
+    if os.name == 'nt':
+        undo_name = 'epnamer-undo.bat'
+        move_cmd = 'move'
+    else:
+        undo_name = 'epnamer-undo.sh'
+        move_cmd = 'mv'
+    with open(undo_name, 'w') as f:
         for filepath in rename_map:
             escaped_dest = rename_map[filepath].replace('"', '\\"')
             escaped_src = filepath.replace('"', '\\"')
-            f.write('mv "{}" "{}"\n'.format(escaped_dest, escaped_src))
+            f.write('{} '.format(move_cmd))
+            f.write('"{}" "{}"\n'.format(escaped_dest, escaped_src))
             os.rename(filepath, rename_map[filepath])
 
 def main():
