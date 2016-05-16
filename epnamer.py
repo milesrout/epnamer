@@ -105,7 +105,9 @@ def recursive_iter_paths(targets):
 def do_renaming(rename_map):
     with open('epnamer-undo.sh', 'w') as f:
         for filepath in rename_map:
-            f.write("mv {} {}\n".format(rename_map[filepath], filepath))
+            escaped_dest = rename_map[filepath].replace('"', '\\"')
+            escaped_src = filepath.replace('"', '\\"')
+            f.write('mv "{}" "{}"\n'.format(escaped_dest, escaped_src))
             os.rename(filepath, rename_map[filepath])
 
 def main():
