@@ -6,7 +6,7 @@ import sys
 import urllib.request
 
 Episode = namedtuple('Episode', 'show, s, e, title')
-Video = namedtuple('Video', 'filename, s, e, suffix')
+Video = namedtuple('Video', 'filepath, s, e, suffix')
 
 def _json_query(url):
     with urllib.request.urlopen(url) as response:
@@ -53,38 +53,42 @@ def epcode_res():
     return list(re.compile(s, re.IGNORECASE) for s in re_strs)
 
 
-def parse_video(filename, season, num):
+def parse_video(filepath, season, num):
     tags = ['360p', '480p','720p', '1080p', 'x264', 'x265']
-    suffix = ''.join(tag for tag in tags if tag in filename.split('/')[-1])
-    return Video(filename, season, num, suffix)
+    filename = os.path.basename(filepath)
+    suffix = ''.join(tag for tag in tags if tag in filename)
+    return Video(filepath, season, num, suffix)
 
 
-def iter_videos(filenames):
-    for filename in filenames:
+def iter_videos(filepaths):
+    for filepath in filepaths:
         for epcode_re in epcode_res():
-            match = epcode_re.search(os.path.basename(filename))
+            match = epcode_re.search(os.path.basename(filepath))
             if match:
-                yield parse_video(filename, *map(int, match.groups()))
+                yield parse_video(filepath, *map(int, match.groups()))
 
 def make_name(video, episode):
     text_strip = lambda s: ''.join(c for c in s if c.isalnum() or c == ' ')
     text_map = lambda s: text_strip(s).replace(' ', '.')
     file_format = '{}.S{:02}E{:02}.{}'
     suffix = '.' + video.suffix if video.suffix else ''
-    extension = os.path.splitext(video.filename)[1]
+    extension = os.path.splitext(video.filepath)[1]
     return file_format.format(text_map(episode.show), episode.s, episode.e,
             text_map(episode.title)) + suffix + extension
 
-def _iter_rename_table(filenames, guide):
-    videos = list(iter_videos(filenames))
-    for video in iter_videos(filenames):
+def _iter_rename_table(filepaths, guide):
+    videos = list(iter_videos(filepaths))
+    for video in videos:
         for episode in guide:
             if (episode.s, episode.e) == (video.s, video.e):
-                yield video.filename, make_name(video, episode)
+                new_name = make_name(video, episode)
+                directory = os.path.dirname(video.filepath)
+                new_path = os.path.join(directory, new_name)
+                yield video.filepath, new_path
                 break
 
-def get_rename_map(filenames, guide):
-    return {k: v for k, v in _iter_rename_table(filenames, guide)}
+def get_rename_map(filepaths, guide):
+    return {k: v for k, v in _iter_rename_table(filepaths, guide)}
 
 def recursive_iter_paths(targets):
     for target in targets:
@@ -96,10 +100,8 @@ def recursive_iter_paths(targets):
 
 def do_renaming(rename_map):
     with open('epnamer-undo.sh', 'w') as f:
-        for filename in rename_map:
-            raise NotImplementedError
-
-
+        for filepath in rename_map:
+            f.write("mv {} {}\n".format(rename_map[filepath], filepath))
 
 def main():
     if len(sys.argv) < 3:
@@ -114,15 +116,15 @@ def main():
         print("Could not find show", sys.argv[1], "in database.")
         sys.exit(1)
 
-    arg_filenames = list(recursive_iter_paths(sys.argv[2:]))
-    if not arg_filenames:
+    arg_filepaths = list(recursive_iter_paths(sys.argv[2:]))
+    if not arg_filepaths:
         print("No files to rename.")
         sys.exit(1)
 
-    rename_map = get_rename_map(arg_filenames, guide)
+    rename_map = get_rename_map(arg_filepaths, guide)
 
     print("Performing the following renames:")
-    printable_map = {os.path.basename(f): rename_map[f] for f in rename_map}
+    printable_map = {f: os.path.basename(rename_map[f]) for f in rename_map}
     for basename in sorted(printable_map):
         print("{} => {}".format(basename, printable_map[basename]))
     print("")
