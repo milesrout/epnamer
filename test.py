@@ -14,10 +14,12 @@ def epcodes():
         'Test.S01E12.720p.mkv',
         '.S01E01.dir/foo.avi',
         'Bar Season 1 Episode 18.mp4',
+        'Season 4/Baz 409 The Naming.avi'
     ]
     assert(list(iter_videos(filenames)) == [
         Video('Test.S01E12.720p.mkv', 1, 12, '720p'),
         Video('Bar Season 1 Episode 18.mp4', 1, 18, ''),
+        Video('Season 4/Baz 409 The Naming.avi', 4, 9, ''),
     ])
 
 def renaming():
