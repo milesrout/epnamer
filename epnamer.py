@@ -10,7 +10,7 @@ Video = namedtuple('Video', 'filepath, s, e, suffix')
 
 def _json_query(url):
     with urllib.request.urlopen(url) as response:
-        return json.loads(response.readall().decode('utf-8'))
+        return json.loads(response.read().decode('utf-8'))
 
 
 class tvmaze_guide:
