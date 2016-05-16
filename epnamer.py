@@ -102,6 +102,7 @@ def do_renaming(rename_map):
     with open('epnamer-undo.sh', 'w') as f:
         for filepath in rename_map:
             f.write("mv {} {}\n".format(rename_map[filepath], filepath))
+            os.rename(filepath, rename_map[filepath])
 
 def main():
     if len(sys.argv) < 3:
