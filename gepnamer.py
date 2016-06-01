@@ -50,12 +50,16 @@ class Application():
         table = ttk.Frame(frame)
         table.grid(row=3, column=1, columnspan=4, sticky='news', **pad)
 
-        scr = ttk.Scrollbar(table)
-        scr.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        vscroll = ttk.Scrollbar(table)
+        vscroll.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        hscroll = ttk.Scrollbar(table, orient=tkinter.HORIZONTAL)
+        hscroll.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+
         self.tree = ttk.Treeview(table, columns=('New name',),
-                yscrollcommand=scr.set)
+                yscrollcommand=vscroll.set, xscrollcommand=hscroll.set)
         self.tree.pack(expand=tkinter.YES, fill=tkinter.BOTH)
-        scr.config(command=self.tree.yview)
+        vscroll.config(command=self.tree.yview)
+        hscroll.config(command=self.tree.xview)
 
         # Rename button
         self.button_rename = ttk.Button(
