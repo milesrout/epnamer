@@ -16,14 +16,15 @@ class Application():
 
         self.guide = None
         self.filepaths = None
+        self.rename_map = None
 
         # Show name
         self.var_show_name = tkinter.StringVar()
         ttk.Label(frame, text='Show name:').grid(row=1, column=1)
         ttk.Entry(frame, textvariable=self.var_show_name).grid(
-                row=1, column=2, columnspan=2)
+                row=1, column=2)
         ttk.Button(frame, text='Load', command=self.load_show).grid(
-                row=1, column=4)
+                row=1, column=3)
 
         # Target files
         self.var_target = tkinter.StringVar()
@@ -31,16 +32,24 @@ class Application():
         ttk.Entry(frame, textvariable=self.var_target).grid(row=2, column=2)
         ttk.Button(frame, text='...', command=self.choose_dir).grid(
                 row=2, column=3)
-        ttk.Button(frame, text='Load', command=self.load_targets).grid(
-                row=2, column=4)
 
-        # Renames
+        ttk.Button(frame, text='Generate', command=self.generate).grid(
+                row=1, column=4, rowspan=2)
+
+        self.tree = ttk.Treeview(frame, columns=('New name',))
+        self.tree.grid(row=3, column=1, columnspan=4)
+
+        self.button_rename = ttk.Button(
+                frame, text='Rename', command=self.rename)
+        self.button_rename.grid(row=4, column=3)
+        self.button_rename.state(["disabled"])
 
     def load_show(self):
         try:
             self.guide = tvmaze_guide(self.var_show_name.get())
         except urllib.error.HTTPError:
             self.guide = None
+            self.clear()
         if not self.guide:
             messagebox.showerror('Load show', 'No show guide found')
 
@@ -49,43 +58,42 @@ class Application():
         if path:
             self.var_target.set(path)
 
-    def load_targets(self):
-        self.filepaths = list(recursive_iter_paths((self.var_target.get(),)))
-        if not self.filepaths:
-            messagebox.showerror('Load targets',
-                    'Nothing found in target directory')
+    def clear(self):
+        self.button_rename.state(["disabled"])
+        self.tree.delete(*self.tree.get_children())
+
+    def generate(self):
+        if not self.guide:
+            self.load_show()
+            if not self.guide:
+                return
+
+        filepaths = list(recursive_iter_paths((self.var_target.get(),)))
+        self.rename_map = get_rename_map(filepaths, self.guide)
+        if not self.rename_map:
+            messagebox.showerror('Load targets', 'No files to rename')
+            self.clear()
+            return
+
+        for key in self.rename_map:
+            old_name = os.path.basename(key)
+            new_name = os.path.basename(self.rename_map[key])
+            self.tree.insert('', 'end', text=old_name, values=new_name)
+
+        self.button_rename.state(["!disabled"])
+
+    def rename(self):
+        do_renaming(self.rename_map)
+        messagebox.showinfo('Rename', 'Rename complete!')
 
 
 def umain():
-    try:
-        guide = tvmaze_guide(sys.argv[1])
-    except urllib.error.HTTPError:
-        guide = None
-    if not guide:
-        print("Could not find show", sys.argv[1], "in database.")
-        sys.exit(1)
-
-    arg_filepaths = list(recursive_iter_paths(sys.argv[2:]))
-    if not arg_filepaths:
-        print("No files to rename.")
-        sys.exit(1)
-
-    rename_map = get_rename_map(arg_filepaths, guide)
-
-    print("Performing the following renames:")
-    printable_map = {f: os.path.basename(rename_map[f]) for f in rename_map}
-    for basename in sorted(printable_map):
-        print("{} => {}".format(basename, printable_map[basename]))
-    print("")
-    confirm = input("Continue? [Y/n] ").lower() in ('', 'y', 'yes')
-    if not confirm:
-        print("Aborted.")
-        sys.exit()
-
     do_renaming(rename_map)
 
 def main():
     app = Application()
+    app.var_show_name.set('Friends')
+    app.var_target.set('test')
     app.root.mainloop()
 
 
