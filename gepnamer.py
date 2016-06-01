@@ -42,13 +42,22 @@ class Application():
         ttk.Button(frame, text='...', command=self.choose_dir).grid(
                 row=2, column=3, **pad)
 
+        # Generate button
         ttk.Button(frame, text='Generate', command=self.generate).grid(
                 row=1, column=4, rowspan=2, **pad)
 
         # Rename table
-        self.tree = ttk.Treeview(frame, columns=('New name',))
-        self.tree.grid(row=3, column=1, columnspan=4, sticky='news', **pad)
+        table = ttk.Frame(frame)
+        table.grid(row=3, column=1, columnspan=4, sticky='news', **pad)
 
+        scr = ttk.Scrollbar(table)
+        scr.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        self.tree = ttk.Treeview(table, columns=('New name',),
+                yscrollcommand=scr.set)
+        self.tree.pack(expand=tkinter.YES, fill=tkinter.BOTH)
+        scr.config(command=self.tree.yview)
+
+        # Rename button
         self.button_rename = ttk.Button(
                 frame, text='Rename', command=self.rename)
         self.button_rename.grid(row=4, column=4, **pad)
