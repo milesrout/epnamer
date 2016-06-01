@@ -63,6 +63,10 @@ class Application():
         self.button_rename.grid(row=4, column=4, **pad)
         self.button_rename.state(["disabled"])
 
+        # Data source
+        ttk.Label(frame, text=tvmaze_guide.api_source(None)).grid(
+                row=4, column=1, columnspan=3, sticky='w', **pad)
+
     def load_show(self):
         try:
             self.guide = tvmaze_guide(self.var_show_name.get())

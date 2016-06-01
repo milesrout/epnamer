@@ -20,16 +20,17 @@ class tvmaze_guide:
         if args:
             self.fetch(*args)
 
+    def api_source(self):
+        return 'Source: TVmaze <tvmaze.com>'
+
     def __iter__(self):
         yield from self.episodes
 
     def _find_show_id(self, show_name):
         url = 'http://api.tvmaze.com/singlesearch/shows?q={}'
-        print("Getting show data from TVmaze <tvmaze.com> ...")
         query = url.format(urllib.parse.quote(show_name))
         result = _json_query(query)
         self.show = result['name']
-        print("Show data found at", result['url'])
         return result['id']
 
     def _parse_episode(self, ep_data):
@@ -130,6 +131,8 @@ def main():
     if not guide:
         print("Could not find show", sys.argv[1], "in database.")
         sys.exit(1)
+
+    print(guide.api_source())
 
     arg_filepaths = list(recursive_iter_paths(sys.argv[2:]))
     if not arg_filepaths:
