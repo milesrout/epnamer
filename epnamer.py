@@ -74,13 +74,13 @@ def iter_videos(filepaths):
                 yield parse_video(filepath, *map(int, match.groups()))
 
 def make_name(video, episode):
-    text_strip = lambda s: ''.join(c for c in s if c.isalnum() or c == ' ')
-    text_map = lambda s: text_strip(s).replace(' ', '.')
-    file_format = '{}.S{:02}E{:02}.{}'
+    strip_text = lambda s: ''.join(c for c in s if c.isalnum() or c == ' ')
+    sanitize_text = lambda s: strip_text(s).replace(' ', '.')
+    file_format = '{}.S{:02}E{:02}.{}{}{}'
     suffix = '.' + video.suffix if video.suffix else ''
     extension = os.path.splitext(video.filepath)[1]
-    return file_format.format(text_map(episode.show), episode.s, episode.e,
-            text_map(episode.title)) + suffix + extension
+    return file_format.format(sanitize_text(episode.show), episode.s,
+            episode.e, sanitize_text(episode.title), suffix, extension)
 
 def _iter_rename_table(filepaths, guide):
     videos = list(iter_videos(filepaths))
