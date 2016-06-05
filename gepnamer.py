@@ -22,7 +22,7 @@ class Application():
         self.filepaths = None
         self.rename_map = None
 
-        pad = {'padx': 5, 'pady': 2}
+        pad = {'padx': 3, 'pady': 2}
 
         # Show name
         self.var_show_name = tkinter.StringVar()
@@ -61,15 +61,24 @@ class Application():
         vscroll.config(command=self.tree.yview)
         hscroll.config(command=self.tree.xview)
 
+        # Undo script
+        self.var_undo_script = tkinter.StringVar()
+        ttk.Label(frame, text='Undo script:').grid(
+                row=4, column=1, sticky='e', **pad)
+        ttk.Entry(frame, textvariable=self.var_undo_script).grid(
+                row=4, column=2, sticky='ew', **pad)
+        ttk.Button(frame, text='...', command=self.choose_undo).grid(
+                row=4, column=3, **pad)
+
         # Rename button
         self.button_rename = ttk.Button(
                 frame, text='Rename', command=self.rename)
-        self.button_rename.grid(row=4, column=4, **pad)
+        self.button_rename.grid(row=5, column=4, **pad)
         self.button_rename.state(["disabled"])
 
         # Data source
         ttk.Label(frame, text=tvmaze_guide.api_source(None)).grid(
-                row=4, column=1, columnspan=3, sticky='w', **pad)
+                row=5, column=1, columnspan=3, sticky='w', **pad)
 
     def load_show(self):
         try:
@@ -84,6 +93,9 @@ class Application():
         path = filedialog.askdirectory()
         if path:
             self.var_target.set(path)
+
+    def choose_undo(self):
+        filename = filedialog.asksaveasfile()
 
     def clear(self):
         self.button_rename.state(["disabled"])
