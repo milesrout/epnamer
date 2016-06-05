@@ -104,20 +104,18 @@ def recursive_iter_paths(targets):
         elif os.path.exists(target):
             yield target
 
-def do_renaming(rename_map):
+def do_renaming(rename_map, undo_file=None):
     if os.name == 'nt':
-        undo_name = 'epnamer-undo.bat'
         move_cmd = 'move'
     else:
-        undo_name = 'epnamer-undo.sh'
         move_cmd = 'mv'
-    with open(undo_name, 'w') as f:
-        for filepath in rename_map:
-            escaped_dest = rename_map[filepath].replace('"', '\\"')
-            escaped_src = filepath.replace('"', '\\"')
-            f.write('{} '.format(move_cmd))
-            f.write('"{}" "{}"\n'.format(escaped_dest, escaped_src))
-            os.rename(filepath, rename_map[filepath])
+    for filepath in rename_map:
+        escaped_dest = rename_map[filepath].replace('"', '\\"')
+        escaped_src = filepath.replace('"', '\\"')
+        if undo_file:
+            undo_file.write('{} '.format(move_cmd))
+            undo_file.write('"{}" "{}"\n'.format(escaped_dest, escaped_src))
+        os.rename(filepath, rename_map[filepath])
 
 def main():
     if len(sys.argv) < 3:
@@ -151,7 +149,12 @@ def main():
         print("Aborted.")
         sys.exit()
 
-    do_renaming(rename_map)
+    if os.name == 'nt':
+        undo_name = 'epnamer-undo.bat'
+    else:
+        undo_name = 'epnamer-undo.sh'
+    with open(undo_name, 'w') as undo_file:
+        do_renaming(rename_map, undo_file)
 
 
 
