@@ -21,7 +21,7 @@ class tvmaze_guide:
             self.fetch(*args)
 
     def api_source(self):
-        return 'Source: TVmaze <tvmaze.com>'
+        return 'TVmaze <tvmaze.com>'
 
     def __iter__(self):
         yield from self.episodes
@@ -130,7 +130,7 @@ def main():
         print("Could not find show", sys.argv[1], "in database.")
         sys.exit(1)
 
-    print(guide.api_source())
+    print("Episode guide:", guide.api_source())
 
     arg_filepaths = list(recursive_iter_paths(sys.argv[2:]))
     if not arg_filepaths:
