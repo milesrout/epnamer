@@ -99,7 +99,12 @@ class Application():
             self.var_target.set(path)
 
     def choose_undo(self):
-        filename = filedialog.asksaveasfile()
+        if os.name == 'nt':
+            undo_name = 'epnamer-undo.bat'
+        else:
+            undo_name = 'epnamer-undo.sh'
+        filename = filedialog.asksaveasfilename(initialfile=undo_name)
+        self.var_undo_script.set(filename)
 
     def clear(self):
         self.button_rename.state(["disabled"])
@@ -126,7 +131,15 @@ class Application():
         self.button_rename.state(["!disabled"])
 
     def rename(self):
-        do_renaming(self.rename_map)
+        if not self.var_undo_script.get():
+            if not messagebox.askokcancel('No undo script',
+                    'Continue without being able to undo changes?'):
+                return
+            do_renaming(self.rename_map)
+        else:
+            with open(self.var_undo_script.get(), 'w') as undo_file:
+                do_renaming(self.rename_map, undo_file)
+
         messagebox.showinfo('Rename', 'Rename complete!')
 
 def main():
