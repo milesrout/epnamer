@@ -79,10 +79,10 @@ class Application():
         # Data source
         guide_credit = "Episode guide: " + tvmaze_guide.api_source(None)
         source_credit = "Source code: Louis Warren <http://git.lsw.nz/epnamer>"
-        ttk.Label(frame, text=source_credit).grid(
-                row=5, column=1, columnspan=3, sticky='w', **pad)
         ttk.Label(frame, text=guide_credit).grid(
                 row=5, column=1, columnspan=3, sticky='e', **pad)
+        ttk.Label(frame, text=source_credit).grid(
+                row=5, column=1, columnspan=3, sticky='w', **pad)
 
     def load_show(self):
         try:
