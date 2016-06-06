@@ -24,31 +24,29 @@ class Application():
 
         pad = {'padx': 3, 'pady': 2}
 
-        # Show name
-        self.var_show_name = tkinter.StringVar()
-        ttk.Label(frame, text='Show name:').grid(
-                row=1, column=1, sticky='e', **pad)
-        ttk.Entry(frame, textvariable=self.var_show_name).grid(
-                row=1, column=2, sticky='ew', **pad)
-        ttk.Button(frame, text='Load', command=self.load_show).grid(
-                row=1, column=3, **pad)
-
         # Target files
         self.var_target = tkinter.StringVar()
         ttk.Label(frame, text='Target(s):').grid(
-                row=2, column=1, sticky='e', **pad)
+                row=1, column=1, sticky='e', **pad)
         ttk.Entry(frame, textvariable=self.var_target).grid(
-                row=2, column=2, sticky='ew', **pad)
+                row=1, column=2, sticky='ew', **pad)
         ttk.Button(frame, text='...', command=self.choose_dir).grid(
-                row=2, column=3, **pad)
+                row=1, column=3, **pad)
+
+        # Show name
+        self.var_show_name = tkinter.StringVar()
+        ttk.Label(frame, text='Show name:').grid(
+                row=2, column=1, sticky='e', **pad)
+        ttk.Entry(frame, textvariable=self.var_show_name).grid(
+                row=2, column=2, sticky='ew', **pad)
 
         # Generate button
         ttk.Button(frame, text='Generate', command=self.generate).grid(
-                row=1, column=4, rowspan=2, **pad)
+                row=2, column=3, **pad)
 
         # Rename table
         table = ttk.Frame(frame)
-        table.grid(row=3, column=1, columnspan=4, sticky='news', **pad)
+        table.grid(row=3, column=1, columnspan=3, sticky='news', **pad)
 
         vscroll = ttk.Scrollbar(table)
         vscroll.pack(side=tkinter.RIGHT, fill=tkinter.Y)
@@ -73,16 +71,16 @@ class Application():
         # Rename button
         self.button_rename = ttk.Button(
                 frame, text='Rename', command=self.rename)
-        self.button_rename.grid(row=4, column=4, rowspan=2, **pad)
+        self.button_rename.grid(row=5, column=3, **pad)
         self.button_rename.state(["disabled"])
 
         # Data source
         guide_credit = "Episode guide: " + tvmaze_guide.api_source(None)
         source_credit = "Source code: Louis Warren <http://git.lsw.nz/epnamer>"
         ttk.Label(frame, text=guide_credit).grid(
-                row=5, column=1, columnspan=3, sticky='e', **pad)
+                row=5, column=1, columnspan=2, sticky='e', **pad)
         ttk.Label(frame, text=source_credit).grid(
-                row=5, column=1, columnspan=3, sticky='w', **pad)
+                row=5, column=1, columnspan=2, sticky='w', **pad)
 
     def load_show(self):
         try:
@@ -141,6 +139,7 @@ class Application():
                 do_renaming(self.rename_map, undo_file)
 
         messagebox.showinfo('Rename', 'Rename complete!')
+        self.clear()
 
 def main():
     app = Application()
