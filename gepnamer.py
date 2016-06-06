@@ -73,12 +73,16 @@ class Application():
         # Rename button
         self.button_rename = ttk.Button(
                 frame, text='Rename', command=self.rename)
-        self.button_rename.grid(row=5, column=4, **pad)
+        self.button_rename.grid(row=4, column=4, rowspan=2, **pad)
         self.button_rename.state(["disabled"])
 
         # Data source
-        ttk.Label(frame, text=tvmaze_guide.api_source(None)).grid(
+        guide_credit = "Episode guide: " + tvmaze_guide.api_source(None)
+        source_credit = "Source code: Louis Warren <http://git.lsw.nz/epnamer>"
+        ttk.Label(frame, text=source_credit).grid(
                 row=5, column=1, columnspan=3, sticky='w', **pad)
+        ttk.Label(frame, text=guide_credit).grid(
+                row=5, column=1, columnspan=3, sticky='e', **pad)
 
     def load_show(self):
         try:
