@@ -1,9 +1,10 @@
 from epnamer import *
 
+seinfeld_guide = tvmaze_guide('Seinfeld')
+
 def seinfeld_episodes():
     print('Seinfeld episodes')
-    guide = tvmaze_guide('Seinfeld')
-    episodes = list(guide.episodes)
+    episodes = list(seinfeld_guide.episodes)
     assert(len(episodes) == 180)
     assert(episodes[0] == Episode('Seinfeld', 1, 1, 'Good News, Bad News'))
 
@@ -26,17 +27,17 @@ def epcodes():
 
 def renaming():
     print('Renaming')
-    guide = tvmaze_guide('Seinfeld')
     filenames = [
         'Seinfeld s02e07 720p.mkv',
         's04e11/seinfeld.s02e11.avi',
+        'Seinfeld s14e42 What\'s the deal with python.mp4',
     ]
     expected = {
         'Seinfeld s02e07 720p.mkv': 'Seinfeld.S02E07.The.Revenge.720p.mkv',
         's04e11/seinfeld.s02e11.avi':
             's04e11/Seinfeld.S02E11.The.Chinese.Restaurant.avi',
     }
-    assert(get_rename_map(filenames, guide) == expected)
+    assert(get_rename_map(filenames, seinfeld_guide) == expected)
 
 
 print('Testing:')
