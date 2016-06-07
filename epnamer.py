@@ -62,7 +62,7 @@ def epcode_res():
 def parse_video(filepath, season, num):
     tags = ['360p', '480p','720p', '1080p', 'x264', 'x265']
     filename = os.path.basename(filepath)
-    suffix = ''.join(tag for tag in tags if tag in filename)
+    suffix = '.'.join(tag for tag in tags if tag in filename)
     return Video(filepath, season, num, suffix)
 
 
