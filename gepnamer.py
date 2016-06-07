@@ -100,7 +100,10 @@ class Application():
         if path:
             self.var_target.set(path)
             undo_name = self.suggested_filename()
-            self.var_undo_script.set(os.path.join(path, undo_name))
+            # filedialog.askdirectory returns path with forward slashes.
+            # As this is a GUI, switching to backslashes is not worthwhile.
+            # Use forward slash here for consistency.
+            self.var_undo_script.set(path + '/' + undo_name)
 
     def choose_undo(self):
         undo_name = self.suggested_filename()
