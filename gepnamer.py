@@ -18,10 +18,6 @@ class Application():
         frame.grid_columnconfigure(2, weight=1)
         frame.grid_rowconfigure(3, weight=1)
 
-        self.guide = None
-        self.filepaths = None
-        self.rename_map = None
-
         pad = {'padx': 3, 'pady': 2}
 
         # Target files
@@ -82,6 +78,8 @@ class Application():
         ttk.Label(frame, text=source_credit).grid(
                 row=5, column=1, columnspan=2, sticky='w', **pad)
 
+        self.clear()
+
     def load_show(self):
         try:
             self.guide = tvmaze_guide(self.var_show_name.get())
@@ -110,10 +108,13 @@ class Application():
         self.var_undo_script.set(filename)
 
     def clear(self):
+        self.guide = None
+        self.rename_map = None
         self.button_rename.state(["disabled"])
         self.tree.delete(*self.tree.get_children())
 
     def generate(self):
+        self.clear()
         if not self.guide:
             self.load_show()
             if not self.guide:
