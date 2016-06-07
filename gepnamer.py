@@ -91,16 +91,21 @@ class Application():
         if not self.guide:
             messagebox.showerror('Load show', 'No show guide found')
 
+    def suggested_filename(self):
+        if os.name == 'nt':
+            return 'epnamer-undo.bat'
+        else:
+            return 'epnamer-undo.sh'
+
     def choose_dir(self):
         path = filedialog.askdirectory()
         if path:
             self.var_target.set(path)
+            undo_name = self.suggested_filename()
+            self.var_undo_script.set(os.path.join(path, undo_name))
 
     def choose_undo(self):
-        if os.name == 'nt':
-            undo_name = 'epnamer-undo.bat'
-        else:
-            undo_name = 'epnamer-undo.sh'
+        undo_name = self.suggested_filename()
         filename = filedialog.asksaveasfilename(initialfile=undo_name)
         self.var_undo_script.set(filename)
 
