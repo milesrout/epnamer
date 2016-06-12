@@ -25,9 +25,9 @@ class Application():
         ttk.Label(frame, text='Target(s):').grid(
                 row=1, column=1, sticky='e', **pad)
         ttk.Entry(frame, textvariable=self.var_target).grid(
-                row=1, column=2, sticky='ew', **pad)
+                row=1, column=2, columnspan=3, sticky='ew', **pad)
         ttk.Button(frame, text='...', command=self.choose_dir).grid(
-                row=1, column=3, **pad)
+                row=1, column=5, **pad)
 
         # Show name
         self.var_show_name = tkinter.StringVar()
@@ -36,13 +36,20 @@ class Application():
         ttk.Entry(frame, textvariable=self.var_show_name).grid(
                 row=2, column=2, sticky='ew', **pad)
 
+        # Epcode
+        self.var_epcode_re = tkinter.StringVar()
+        ttk.Label(frame, text='Episode/Season Regex:').grid(
+                row=2, column=3, sticky='e', **pad)
+        ttk.Entry(frame, textvariable=self.var_epcode_re).grid(
+                row=2, column=4, sticky='ew', **pad)
+
         # Generate button
         ttk.Button(frame, text='Generate', command=self.generate).grid(
-                row=2, column=3, **pad)
+                row=2, column=5, **pad)
 
         # Rename table
         table = ttk.Frame(frame)
-        table.grid(row=3, column=1, columnspan=3, sticky='news', **pad)
+        table.grid(row=3, column=1, columnspan=5, sticky='news', **pad)
 
         vscroll = ttk.Scrollbar(table)
         vscroll.pack(side=tkinter.RIGHT, fill=tkinter.Y)
@@ -60,23 +67,23 @@ class Application():
         ttk.Label(frame, text='Undo script:').grid(
                 row=4, column=1, sticky='e', **pad)
         ttk.Entry(frame, textvariable=self.var_undo_script).grid(
-                row=4, column=2, sticky='ew', **pad)
+                row=4, column=2, columnspan=3, sticky='ew', **pad)
         ttk.Button(frame, text='...', command=self.choose_undo).grid(
-                row=4, column=3, **pad)
+                row=4, column=5, **pad)
 
         # Rename button
         self.button_rename = ttk.Button(
                 frame, text='Rename', command=self.rename)
-        self.button_rename.grid(row=5, column=3, **pad)
+        self.button_rename.grid(row=5, column=5, **pad)
         self.button_rename.state(["disabled"])
 
         # Data source
         guide_credit = "Episode guide: " + tvmaze_guide.api_source(None)
         source_credit = "Source code: Louis Warren <http://git.lsw.nz/epnamer>"
         ttk.Label(frame, text=guide_credit).grid(
-                row=5, column=1, columnspan=2, sticky='e', **pad)
+                row=5, column=1, columnspan=4, sticky='e', **pad)
         ttk.Label(frame, text=source_credit).grid(
-                row=5, column=1, columnspan=2, sticky='w', **pad)
+                row=5, column=1, columnspan=4, sticky='w', **pad)
 
         self.clear()
 
@@ -123,8 +130,13 @@ class Application():
             if not self.guide:
                 return
 
+        if self.var_epcode_re.get():
+            epcode_res = [re.compile(self.var_epcode_re.get(), re.IGNORECASE)]
+        else:
+            epcode_res = default_epcode_res
+
         filepaths = list(recursive_iter_paths((self.var_target.get(),)))
-        self.rename_map = get_rename_map(filepaths, self.guide)
+        self.rename_map = get_rename_map(filepaths, self.guide, epcode_res)
         if not self.rename_map:
             messagebox.showerror('Load targets', 'No files to rename')
             self.clear()
