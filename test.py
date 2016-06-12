@@ -18,12 +18,14 @@ def epcodes():
         'Thing 2x05 (HQ).srt',
         'Season 4/Baz 409 The Naming.avi'
     ]
-    assert(list(iter_videos(filenames)) == [
+    assert(list(iter_videos(filenames, default_epcode_res)) == [
         Video('Test.S01E12.720p-x264.mkv', 1, 12, '720p.x264'),
         Video('Bar Season 1 Episode 18.mp4', 1, 18, ''),
         Video('Thing 2x05 (HQ).srt', 2, 5, ''),
         Video('Season 4/Baz 409 The Naming.avi', 4, 9, ''),
     ])
+    assert(list(iter_videos(filenames, [re.compile(r'(7)(20)')])) ==
+        [Video('Test.S01E12.720p-x264.mkv', 7, 20, '720p.x264')])
 
 def renaming():
     print('Renaming')
@@ -37,7 +39,8 @@ def renaming():
         's04e11/seinfeld.s02e11.avi':
             's04e11/Seinfeld.S02E11.The.Chinese.Restaurant.avi',
     }
-    assert(get_rename_map(filenames, seinfeld_guide) == expected)
+    assert(get_rename_map(filenames, seinfeld_guide, default_epcode_res)
+            == expected)
 
 
 print('Testing:')

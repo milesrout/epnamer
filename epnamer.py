@@ -5,8 +5,18 @@ import re
 import sys
 import urllib.request
 
+
 Episode = namedtuple('Episode', 'show, s, e, title')
 Video = namedtuple('Video', 'filepath, s, e, suffix')
+
+
+default_epcode_res = list(re.compile(s, re.IGNORECASE) for s in [
+    r'S(\d\d)E(\d\d)',
+    r'Season (\d+) Episode (\d+)',
+    r'\s(\d)x(\d\d)\s',
+    r'\s(\d)(\d\d)\s',
+])
+
 
 def _json_query(url):
     with urllib.request.urlopen(url) as response:
@@ -49,16 +59,6 @@ class tvmaze_guide:
             self.episodes.append(self._parse_episode(ep_result))
 
 
-def epcode_res():
-    re_strs = [
-        r'S(\d\d)E(\d\d)',
-        r'Season (\d+) Episode (\d+)',
-        r'\s(\d)x(\d\d)\s',
-        r'\s(\d)(\d\d)\s',
-    ]
-    return list(re.compile(s, re.IGNORECASE) for s in re_strs)
-
-
 def parse_video(filepath, season, num):
     tags = ['360p', '480p','720p', '1080p', 'x264', 'x265']
     filename = os.path.basename(filepath)
@@ -66,9 +66,9 @@ def parse_video(filepath, season, num):
     return Video(filepath, season, num, suffix)
 
 
-def iter_videos(filepaths):
+def iter_videos(filepaths, epcode_res):
     for filepath in filepaths:
-        for epcode_re in epcode_res():
+        for epcode_re in epcode_res:
             match = epcode_re.search(os.path.basename(filepath))
             if match:
                 yield parse_video(filepath, *map(int, match.groups()))
@@ -82,8 +82,8 @@ def make_name(video, episode):
     return file_format.format(sanitize_text(episode.show), episode.s,
             episode.e, sanitize_text(episode.title), suffix, extension)
 
-def _iter_rename_table(filepaths, guide):
-    videos = list(iter_videos(filepaths))
+def _iter_rename_table(filepaths, guide, epcode_res):
+    videos = list(iter_videos(filepaths, epcode_res))
     for video in videos:
         for episode in guide:
             if (episode.s, episode.e) == (video.s, video.e):
@@ -93,8 +93,8 @@ def _iter_rename_table(filepaths, guide):
                 yield video.filepath, new_path
                 break
 
-def get_rename_map(filepaths, guide):
-    return {k: v for k, v in _iter_rename_table(filepaths, guide)}
+def get_rename_map(filepaths, guide, epcode_res):
+    return {k: v for k, v in _iter_rename_table(filepaths, guide, epcode_res)}
 
 def recursive_iter_paths(targets):
     for target in targets:
@@ -119,25 +119,39 @@ def do_renaming(rename_map, undo_file=None):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: {} SHOWNAME FILE...")
+        print("Usage: {} [-e REGEX] SHOWNAME FILE...")
+        print("\tREGEX must match a season and episode, eg", r'S(\d\d)E(\d\d)')
         sys.exit()
 
+    arg_pos = 1
+
+
+    if sys.argv[arg_pos] == '-e':
+        epcode_res = [re.compile(sys.argv[arg_pos + 1], re.IGNORECASE)]
+        arg_pos += 2
+    else:
+        epcode_res = default_epcode_res
+
+
+    print("Episode guide:", tvmaze_guide().api_source())
     try:
-        guide = tvmaze_guide(sys.argv[1])
+        guide = tvmaze_guide(sys.argv[arg_pos])
     except urllib.error.HTTPError:
         guide = None
     if not guide:
-        print("Could not find show", sys.argv[1], "in database.")
+        print("Could not find show", sys.argv[arg_pos], "in database.")
         sys.exit(1)
+    arg_pos += 1
 
-    print("Episode guide:", guide.api_source())
 
-    arg_filepaths = list(recursive_iter_paths(sys.argv[2:]))
+    arg_filepaths = list(recursive_iter_paths(sys.argv[arg_pos:]))
     if not arg_filepaths:
         print("No files to rename.")
         sys.exit(1)
 
-    rename_map = get_rename_map(arg_filepaths, guide)
+
+    rename_map = get_rename_map(arg_filepaths, guide, epcode_res)
+
 
     print("Performing the following renames:")
     printable_map = {f: os.path.basename(rename_map[f]) for f in rename_map}
