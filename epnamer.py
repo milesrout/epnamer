@@ -74,7 +74,7 @@ def iter_videos(filepaths, epcode_res):
                 yield parse_video(filepath, *map(int, match.groups()))
 
 def make_name(video, episode):
-    strip_text = lambda s: ''.join(c for c in s if c.isalnum() or c == ' ')
+    strip_text = lambda s: ''.join(c for c in s if c.isalnum() or c in ' &')
     sanitize_text = lambda s: strip_text(s).replace(' ', '.')
     file_format = '{}.S{:02}E{:02}.{}{}{}'
     suffix = '.' + video.suffix if video.suffix else ''
