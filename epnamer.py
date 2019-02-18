@@ -6,6 +6,7 @@ import sys
 import urllib.request
 
 
+season_num = None
 Episode = namedtuple('Episode', 'show, s, e, title')
 Video = namedtuple('Video', 'filepath, s, e, suffix')
 
@@ -71,7 +72,10 @@ def iter_videos(filepaths, epcode_res):
         for epcode_re in epcode_res:
             match = epcode_re.search(os.path.basename(filepath))
             if match:
-                yield parse_video(filepath, *map(int, match.groups()))
+                if season_num is not None:
+                    yield parse_video(filepath, season_num, *map(int, match.groups()))
+                else:
+                    yield parse_video(filepath, *map(int, match.groups()))
 
 def make_name(video, episode):
     strip_text = lambda s: ''.join(c for c in s if c.isalnum() or c in ' &')
@@ -119,18 +123,25 @@ def do_renaming(rename_map, undo_file=None):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: {} [-e REGEX] SHOWNAME FILE...")
+        print("Usage: {} [-e REGEX] [-s SEASON] SHOWNAME FILE...")
         print("\tREGEX must match a season and episode, eg", r'S(\d\d)E(\d\d)')
+        print("\tunless the SEASON is provided, in which case it must match just an episode")
         sys.exit()
 
+    global season_num
+
     arg_pos = 1
+    epcode_res = default_epcode_res
+    season_num = None
 
+    while sys.argv[arg_pos] in ['-e', '-s']:
+        if sys.argv[arg_pos] == '-s':
+            season_num = int(sys.argv[arg_pos + 1])
+            arg_pos += 2
 
-    if sys.argv[arg_pos] == '-e':
-        epcode_res = [re.compile(sys.argv[arg_pos + 1], re.IGNORECASE)]
-        arg_pos += 2
-    else:
-        epcode_res = default_epcode_res
+        if sys.argv[arg_pos] == '-e':
+            epcode_res = [re.compile(sys.argv[arg_pos + 1], re.IGNORECASE)]
+            arg_pos += 2
 
 
     print("Episode guide:", tvmaze_guide().api_source())
